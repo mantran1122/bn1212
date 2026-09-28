@@ -1,0 +1,3299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Explore Energy in Science: An interactive, visual educational experience covering Kinetic, Potential, and Thermal Energy with live physics simulators and learning games.">
+  <title>Energy in Science | Interactive Physics & Learning Experience</title>
+  
+  <!-- Favicon via SVG Data URI -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+  
+  <style>
+    /* ==========================================================================
+       1. CSS VARIABLES & DESIGN SYSTEM
+       ========================================================================== */
+    :root {
+      --bg-primary: #050814;
+      --bg-secondary: #0a0f24;
+      --bg-tertiary: #101935;
+      --bg-card: rgba(16, 25, 53, 0.72);
+      --bg-card-hover: rgba(23, 36, 74, 0.85);
+      --bg-glass: rgba(10, 15, 36, 0.65);
+      
+      --accent-cyan: #00f0ff;
+      --accent-blue: #3b82f6;
+      --accent-indigo: #6366f1;
+      --accent-purple: #a855f7;
+      --accent-amber: #f59e0b;
+      --accent-orange: #ff7849;
+      --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
+      
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(0, 240, 255, 0.35);
+      --border-glass: rgba(255, 255, 255, 0.12);
+      
+      --glow-cyan: 0 0 25px rgba(0, 240, 255, 0.3);
+      --glow-blue: 0 0 25px rgba(59, 130, 246, 0.35);
+      --glow-amber: 0 0 25px rgba(245, 158, 11, 0.35);
+      --shadow-card: 0 16px 36px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--border-subtle);
+      --shadow-elevated: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+      
+      --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-smooth: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      --transition-bounce: 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      
+      --font-main: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    /* ==========================================================================
+       2. RESET & BASE STYLES
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+    }
+
+    body {
+      font-family: var(--font-main);
+      line-height: 1.65;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      overflow-x: hidden;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* Accessibility focus rings */
+    :focus-visible {
+      outline: 2px solid var(--accent-cyan);
+      outline-offset: 4px;
+      border-radius: var(--radius-sm);
+    }
+
+    /* Selection */
+    ::selection {
+      background: rgba(0, 240, 255, 0.3);
+      color: #ffffff;
+    }
+
+    /* ==========================================================================
+       3. BACKGROUND DECORATIONS & CURSOR GLOW
+       ========================================================================== */
+    .bg-canvas-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .ambient-glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.18;
+      pointer-events: none;
+    }
+
+    .ambient-glow-1 {
+      top: -150px;
+      left: -100px;
+      background: radial-gradient(circle, var(--accent-cyan), transparent 70%);
+    }
+
+    .ambient-glow-2 {
+      top: 35%;
+      right: -150px;
+      background: radial-gradient(circle, var(--accent-purple), transparent 70%);
+    }
+
+    .ambient-glow-3 {
+      bottom: 10%;
+      left: 15%;
+      background: radial-gradient(circle, var(--accent-blue), transparent 70%);
+    }
+
+    /* Subtle cursor follower (desktop only) */
+    .cursor-glow {
+      position: fixed;
+      width: 450px;
+      height: 450px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.08) 0%, rgba(99, 102, 241, 0.04) 40%, transparent 70%);
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      z-index: 1;
+      transition: opacity 0.4s ease;
+      opacity: 0;
+    }
+
+    body:hover .cursor-glow {
+      opacity: 1;
+    }
+
+    /* ==========================================================================
+       4. READING PROGRESS BAR
+       ========================================================================== */
+    .scroll-progress-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: transparent;
+      z-index: 1000;
+    }
+
+    .scroll-progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue), var(--accent-purple), var(--accent-amber));
+      box-shadow: 0 0 10px var(--accent-cyan);
+      transition: width 0.1s ease-out;
+    }
+
+    /* ==========================================================================
+       5. NAVIGATION BAR
+       ========================================================================== */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 900;
+      padding: 1.25rem 2rem;
+      transition: all var(--transition-smooth);
+      background: transparent;
+    }
+
+    .navbar.scrolled {
+      background: var(--bg-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0.85rem 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .nav-container {
+      max-width: 1320px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      border-radius: var(--radius-sm);
+      display: grid;
+      place-items: center;
+      box-shadow: var(--glow-cyan);
+    }
+
+    .brand-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: #050814;
+    }
+
+    .brand-text span {
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      list-style: none;
+      gap: 0.75rem;
+    }
+
+    .nav-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 0.5rem 0.9rem;
+      font-size: 0.925rem;
+      font-weight: 500;
+      border-radius: var(--radius-full);
+      transition: all var(--transition-fast);
+      position: relative;
+    }
+
+    .nav-link:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-link.active {
+      color: var(--accent-cyan);
+      background: rgba(0, 240, 255, 0.1);
+      font-weight: 600;
+    }
+
+    .nav-cta {
+      margin-left: 0.5rem;
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.15), rgba(59, 130, 246, 0.2));
+      border: 1px solid var(--border-accent);
+      color: var(--accent-cyan);
+      padding: 0.5rem 1.1rem;
+      border-radius: var(--radius-full);
+      font-size: 0.875rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-decoration: none;
+      transition: all var(--transition-fast);
+    }
+
+    .nav-cta:hover {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      color: #050814;
+      box-shadow: var(--glow-cyan);
+      transform: translateY(-1px);
+    }
+
+    /* Mobile Hamburger */
+    .nav-toggle {
+      display: none;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0.5rem;
+      color: var(--text-primary);
+      z-index: 910;
+    }
+
+    .nav-toggle-icon {
+      width: 24px;
+      height: 2px;
+      background-color: var(--text-primary);
+      position: relative;
+      transition: all var(--transition-fast);
+    }
+
+    .nav-toggle-icon::before,
+    .nav-toggle-icon::after {
+      content: '';
+      position: absolute;
+      width: 24px;
+      height: 2px;
+      background-color: var(--text-primary);
+      transition: all var(--transition-fast);
+    }
+
+    .nav-toggle-icon::before { top: -8px; }
+    .nav-toggle-icon::after { bottom: -8px; }
+
+    .nav-toggle[aria-expanded="true"] .nav-toggle-icon {
+      background-color: transparent;
+    }
+    .nav-toggle[aria-expanded="true"] .nav-toggle-icon::before {
+      transform: rotate(45deg);
+      top: 0;
+    }
+    .nav-toggle[aria-expanded="true"] .nav-toggle-icon::after {
+      transform: rotate(-45deg);
+      bottom: 0;
+    }
+
+    /* ==========================================================================
+       6. TYPOGRAPHY & COMMON LAYOUT
+       ========================================================================== */
+    .container {
+      width: 100%;
+      max-width: 1260px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      position: relative;
+      z-index: 10;
+    }
+
+    .section {
+      padding: 6.5rem 0;
+      position: relative;
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 780px;
+      margin: 0 auto 3.5rem auto;
+    }
+
+    .section-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.9rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-radius: var(--radius-full);
+      background: rgba(0, 240, 255, 0.1);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      color: var(--accent-cyan);
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 1.1rem;
+      color: #ffffff;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, #ffffff 30%, var(--accent-cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .gradient-energy {
+      background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-blue) 50%, var(--accent-purple) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-desc {
+      font-size: 1.125rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    /* ==========================================================================
+       7. HERO SECTION
+       ========================================================================== */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 8rem 0 5rem 0;
+      overflow: hidden;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      align-items: center;
+      gap: 3.5rem;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 5;
+    }
+
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-glass);
+      padding: 0.4rem 1.1rem;
+      border-radius: var(--radius-full);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      margin-bottom: 1.5rem;
+      backdrop-filter: blur(10px);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--accent-cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--accent-cyan);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 240, 255, 0.7); }
+      70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(0, 240, 255, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(0, 240, 255, 0); }
+    }
+
+    .hero-title {
+      font-size: clamp(2.75rem, 6.5vw, 4.8rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 1.08;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1.1rem, 2vw, 1.3rem);
+      color: var(--text-secondary);
+      margin-bottom: 2.5rem;
+      max-width: 580px;
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      padding: 0.85rem 1.75rem;
+      border-radius: var(--radius-full);
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      border: none;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      color: #050814;
+      box-shadow: var(--glow-cyan);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 35px rgba(0, 240, 255, 0.5);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--border-accent);
+      color: var(--accent-cyan);
+      transform: translateY(-2px);
+    }
+
+    /* Hero Visual Orb Simulation */
+    .hero-visual {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .orb-wrapper {
+      position: relative;
+      width: 380px;
+      height: 380px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .energy-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(0, 240, 255, 0.2);
+    }
+
+    .ring-1 {
+      width: 100%;
+      height: 100%;
+      border-top-color: var(--accent-cyan);
+      border-right-color: transparent;
+      animation: spin 16s linear infinite;
+    }
+
+    .ring-2 {
+      width: 80%;
+      height: 80%;
+      border-bottom-color: var(--accent-purple);
+      border-left-color: transparent;
+      animation: spin-reverse 12s linear infinite;
+    }
+
+    .ring-3 {
+      width: 60%;
+      height: 60%;
+      border-top-color: var(--accent-amber);
+      border-bottom-color: transparent;
+      animation: spin 8s linear infinite;
+    }
+
+    .glowing-core {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ffffff, var(--accent-cyan) 60%, var(--accent-blue) 100%);
+      box-shadow: 0 0 60px rgba(0, 240, 255, 0.7), 0 0 100px rgba(99, 102, 241, 0.4);
+      animation: breathe 4s ease-in-out infinite;
+      position: relative;
+      display: grid;
+      place-items: center;
+    }
+
+    .core-icon {
+      font-size: 2.5rem;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes spin-reverse {
+      100% { transform: rotate(-360deg); }
+    }
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 40px rgba(0, 240, 255, 0.6)); }
+      50% { transform: scale(1.12); filter: drop-shadow(0 0 70px rgba(0, 240, 255, 0.9)); }
+    }
+
+    /* Floating stat badges around orb */
+    .floating-badge {
+      position: absolute;
+      background: var(--bg-card);
+      border: 1px solid var(--border-glass);
+      backdrop-filter: blur(12px);
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-card);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.85rem;
+      animation: float 6s ease-in-out infinite;
+      z-index: 10;
+    }
+
+    .badge-top { top: 0; left: 10%; animation-delay: 0s; }
+    .badge-right { bottom: 15%; right: -5%; animation-delay: 2s; }
+    .badge-bottom { bottom: -5%; left: 15%; animation-delay: 4s; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    /* ==========================================================================
+       8. STATS / METRICS STRIP
+       ========================================================================== */
+    .metrics-section {
+      padding: 3rem 0;
+      border-top: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(10, 15, 36, 0.4);
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+
+    .metric-card {
+      text-align: center;
+      padding: 1.5rem 1rem;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid transparent;
+      transition: all var(--transition-fast);
+    }
+
+    .metric-card:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--border-subtle);
+      transform: translateY(-3px);
+    }
+
+    .metric-number {
+      font-size: clamp(2rem, 3.5vw, 2.75rem);
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.1;
+      margin-bottom: 0.35rem;
+      font-feature-settings: "tnum";
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric-number span {
+      color: var(--accent-cyan);
+    }
+
+    .metric-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ==========================================================================
+       9. INTRODUCTION SECTION
+       ========================================================================== */
+    .intro-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+    }
+
+    .intro-text-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      box-shadow: var(--shadow-card);
+      backdrop-filter: blur(12px);
+    }
+
+    .intro-quote {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #ffffff;
+      border-left: 4px solid var(--accent-cyan);
+      padding-left: 1.25rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+
+    .intro-body {
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+      line-height: 1.75;
+    }
+
+    .intro-features {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .feature-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(0, 240, 255, 0.15);
+      color: var(--accent-cyan);
+      display: grid;
+      place-items: center;
+      font-size: 0.8rem;
+    }
+
+    .intro-visual-card {
+      position: relative;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-glass);
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .concept-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      padding: 1.25rem;
+      border-radius: var(--radius-md);
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .concept-card:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--border-accent);
+      transform: translateX(6px);
+    }
+
+    .concept-icon {
+      font-size: 1.75rem;
+      line-height: 1;
+    }
+
+    .concept-info h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 0.25rem;
+    }
+
+    .concept-info p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ==========================================================================
+       10. INTERACTIVE CALCULATOR COMMON STYLES
+       ========================================================================== */
+    .calculator-wrapper {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      box-shadow: var(--shadow-card);
+      backdrop-filter: blur(14px);
+      margin-top: 2rem;
+    }
+
+    .calc-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      align-items: center;
+    }
+
+    .formula-tag {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 1.15rem;
+      font-weight: 700;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-sm);
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--border-accent);
+      color: var(--accent-cyan);
+      margin-bottom: 1.5rem;
+    }
+
+    .control-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.6rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .control-val {
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+      font-size: 1rem;
+    }
+
+    .range-slider {
+      width: 100%;
+      height: 8px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-full);
+      outline: none;
+      cursor: pointer;
+      transition: background var(--transition-fast);
+    }
+
+    .range-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      box-shadow: 0 0 12px var(--accent-cyan);
+      cursor: pointer;
+      transition: transform var(--transition-fast);
+    }
+
+    .range-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    .range-slider::-moz-range-thumb {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent-cyan);
+      box-shadow: 0 0 12px var(--accent-cyan);
+      cursor: pointer;
+      border: none;
+    }
+
+    .calc-result-box {
+      margin-top: 1.75rem;
+      padding: 1.25rem 1.5rem;
+      border-radius: var(--radius-md);
+      background: rgba(0, 240, 255, 0.05);
+      border: 1px solid rgba(0, 240, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .result-label {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .result-value {
+      font-family: var(--font-mono);
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: #ffffff;
+      text-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+    }
+
+    /* Kinetic Visual Track */
+    .kinetic-track-box {
+      background: rgba(0, 0, 0, 0.45);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-glass);
+      padding: 2rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 260px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .track-road {
+      position: relative;
+      width: 100%;
+      height: 48px;
+      border-bottom: 2px dashed rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      margin: auto 0;
+    }
+
+    .kinetic-craft {
+      position: absolute;
+      left: 0;
+      transform: translateX(0);
+      display: flex;
+      align-items: center;
+      transition: box-shadow var(--transition-fast);
+    }
+
+    .craft-body {
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      color: #050814;
+      font-weight: 800;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+      white-space: nowrap;
+    }
+
+    .craft-trail {
+      position: absolute;
+      right: 100%;
+      height: 4px;
+      width: 40px;
+      background: linear-gradient(90deg, transparent, var(--accent-cyan));
+      border-radius: var(--radius-full);
+      opacity: 0.8;
+    }
+
+    .sim-status {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+    }
+
+    /* Potential Energy Visual Gauge */
+    .potential-stage-box {
+      background: rgba(0, 0, 0, 0.45);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-glass);
+      padding: 1.5rem;
+      height: 280px;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      position: relative;
+    }
+
+    .height-ruler {
+      height: 100%;
+      width: 40px;
+      border-right: 2px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding-right: 8px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+    }
+
+    .potential-visual-area {
+      flex: 1;
+      height: 100%;
+      position: relative;
+      display: flex;
+      justify-content: center;
+    }
+
+    .pe-crane-rope {
+      position: absolute;
+      top: 0;
+      width: 2px;
+      background: rgba(255, 255, 255, 0.4);
+      height: 50%;
+      transition: height 0.15s ease-out;
+    }
+
+    .pe-weight-mass {
+      position: absolute;
+      bottom: 50%;
+      width: 90px;
+      height: 60px;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-indigo));
+      border-radius: var(--radius-sm);
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 0.85rem;
+      color: #ffffff;
+      box-shadow: 0 0 25px rgba(168, 85, 247, 0.4);
+      transition: bottom 0.15s ease-out, transform 0.2s;
+    }
+
+    .pe-ground {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 10px var(--accent-emerald);
+    }
+
+    /* ==========================================================================
+       11. THREE POTENTIAL CARDS (ELASTIC, GRAVITATIONAL, CHEMICAL)
+       ========================================================================== */
+    .cards-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.75rem;
+      margin-top: 3.5rem;
+    }
+
+    .type-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2.25rem 1.75rem;
+      transition: all var(--transition-bounce);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(12px);
+    }
+
+    .type-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, var(--border-subtle), transparent);
+      transition: all var(--transition-fast);
+    }
+
+    .type-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--shadow-elevated);
+      border-color: var(--border-glass);
+      background: var(--bg-card-hover);
+    }
+
+    .card-elastic:hover::before { background: linear-gradient(90deg, transparent, var(--accent-amber), transparent); }
+    .card-gravitational:hover::before { background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent); }
+    .card-chemical:hover::before { background: linear-gradient(90deg, transparent, var(--accent-purple), transparent); }
+
+    .card-icon-bubble {
+      width: 58px;
+      height: 58px;
+      border-radius: var(--radius-md);
+      display: grid;
+      place-items: center;
+      font-size: 1.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .bubble-amber { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); box-shadow: var(--glow-amber); }
+    .bubble-cyan { background: rgba(0, 240, 255, 0.15); color: var(--accent-cyan); box-shadow: var(--glow-cyan); }
+    .bubble-purple { background: rgba(168, 85, 247, 0.15); color: var(--accent-purple); box-shadow: 0 0 20px rgba(168, 85, 247, 0.35); }
+
+    .type-card h3 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      margin-bottom: 0.85rem;
+      color: #ffffff;
+    }
+
+    .type-card p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      line-height: 1.65;
+      margin-bottom: 1.5rem;
+      flex-grow: 1;
+    }
+
+    .card-interactive-drawer {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 1rem;
+    }
+
+    .toggle-details-btn {
+      background: transparent;
+      border: none;
+      color: var(--accent-cyan);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0;
+      transition: gap var(--transition-fast);
+    }
+
+    .toggle-details-btn:hover {
+      gap: 0.65rem;
+    }
+
+    .details-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, opacity 0.3s ease;
+      opacity: 0;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.75rem;
+      line-height: 1.55;
+    }
+
+    .details-content.open {
+      max-height: 200px;
+      opacity: 1;
+    }
+
+    /* ==========================================================================
+       12. THERMAL ENERGY SIMULATION
+       ========================================================================== */
+    .thermal-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      box-shadow: var(--shadow-card);
+      margin-top: 2rem;
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 2.5rem;
+      align-items: center;
+    }
+
+    .canvas-chamber-wrapper {
+      position: relative;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 2px solid var(--border-glass);
+      background: #020617;
+      box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
+    }
+
+    #thermalCanvas {
+      display: block;
+      width: 100%;
+      height: 320px;
+    }
+
+    .thermal-badge-overlay {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      padding: 0.35rem 0.85rem;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--accent-cyan);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .thermal-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .temp-indicator-pill {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-align: center;
+      transition: all var(--transition-fast);
+    }
+
+    .temp-low { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid #38bdf8; }
+    .temp-med { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid #f59e0b; }
+    .temp-high { background: rgba(244, 63, 94, 0.15); color: #f43f5e; border: 1px solid #f43f5e; }
+
+    /* ==========================================================================
+       13. ENERGY TRANSFORMATION (ROLLERCOASTER / PENDULUM)
+       ========================================================================== */
+    .transform-stage {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      box-shadow: var(--shadow-card);
+      margin-top: 2rem;
+    }
+
+    .transform-svg-container {
+      position: relative;
+      width: 100%;
+      height: 240px;
+      background: rgba(0, 0, 0, 0.35);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin-bottom: 2rem;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .energy-bars-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .energy-bar-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      padding: 1.25rem;
+      border-radius: var(--radius-md);
+    }
+
+    .energy-bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .bar-track {
+      height: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      transition: width 0.1s linear;
+    }
+
+    .fill-pe { background: var(--accent-purple); box-shadow: 0 0 10px var(--accent-purple); }
+    .fill-ke { background: var(--accent-cyan); box-shadow: 0 0 10px var(--accent-cyan); }
+    .fill-th { background: var(--accent-amber); box-shadow: 0 0 10px var(--accent-amber); }
+
+    .transform-controls {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    /* ==========================================================================
+       14. FUN FACTS SECTION
+       ========================================================================== */
+    .facts-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-bottom: 3.5rem;
+    }
+
+    .fact-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      transition: all var(--transition-fast);
+      position: relative;
+    }
+
+    .fact-card:hover {
+      transform: translateY(-6px);
+      border-color: var(--border-glass);
+      background: var(--bg-card-hover);
+      box-shadow: var(--shadow-card);
+    }
+
+    .fact-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .fact-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.25rem 0.65rem;
+      border-radius: var(--radius-full);
+    }
+
+    .tag-ke { background: rgba(0, 240, 255, 0.12); color: var(--accent-cyan); }
+    .tag-pe { background: rgba(168, 85, 247, 0.12); color: var(--accent-purple); }
+    .tag-th { background: rgba(245, 158, 11, 0.12); color: var(--accent-amber); }
+
+    .fact-icon {
+      font-size: 1.5rem;
+    }
+
+    .fact-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.35;
+    }
+
+    .fact-body {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    /* Random Fact Spotlight Generator */
+    .random-fact-box {
+      background: linear-gradient(135deg, rgba(16, 25, 53, 0.9), rgba(10, 15, 36, 0.9));
+      border: 1px solid var(--border-accent);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      text-align: center;
+      max-width: 800px;
+      margin: 0 auto;
+      box-shadow: var(--glow-cyan);
+    }
+
+    .random-fact-content {
+      min-height: 90px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin: 1.5rem 0;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .random-fact-content.fade-out {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    .random-fact-text {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #ffffff;
+      max-width: 650px;
+      line-height: 1.6;
+    }
+
+    /* ==========================================================================
+       15. CONCLUSION SECTION
+       ========================================================================== */
+    .conclusion-banner {
+      background: linear-gradient(135deg, rgba(16, 25, 53, 0.95), rgba(10, 15, 36, 0.95));
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-lg);
+      padding: 4rem 3rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-elevated);
+    }
+
+    .conclusion-banner::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.06), transparent 60%);
+      pointer-events: none;
+    }
+
+    .conclusion-title {
+      font-size: clamp(2rem, 3.5vw, 2.75rem);
+      font-weight: 800;
+      margin-bottom: 1.25rem;
+      color: #ffffff;
+    }
+
+    .conclusion-text {
+      font-size: 1.15rem;
+      color: var(--text-secondary);
+      max-width: 860px;
+      margin: 0 auto 2.5rem auto;
+      line-height: 1.8;
+    }
+
+    .law-card {
+      display: inline-block;
+      background: rgba(0, 240, 255, 0.08);
+      border: 1px solid var(--border-accent);
+      padding: 1.25rem 2rem;
+      border-radius: var(--radius-md);
+      font-weight: 700;
+      color: #ffffff;
+      font-size: 1.1rem;
+      box-shadow: var(--glow-cyan);
+    }
+
+    /* ==========================================================================
+       16. PLAY & LEARN (LEGENDS OF LEARNING EMBED)
+       ========================================================================== */
+    .play-learn-section {
+      padding: 6rem 0;
+      background: radial-gradient(circle at top, rgba(16, 25, 53, 0.6), transparent 70%);
+      position: relative;
+    }
+
+    .play-badges {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .game-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      padding: 0.5rem 1.1rem;
+      border-radius: var(--radius-full);
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      transition: all var(--transition-fast);
+    }
+
+    .game-badge:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--accent-cyan);
+      transform: translateY(-2px);
+    }
+
+    /* Browser Window Mockup Frame */
+    .browser-frame {
+      width: 100%;
+      max-width: 1300px;
+      margin: 0 auto;
+      background: #0d1326;
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.8), 0 0 35px rgba(0, 240, 255, 0.12);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: all var(--transition-smooth);
+    }
+
+    .browser-header {
+      background: #080c1a;
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      gap: 1rem;
+    }
+
+    .browser-dots {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .browser-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .dot-close { background-color: #ef4444; }
+    .dot-min { background-color: #f59e0b; }
+    .dot-max { background-color: #10b981; }
+
+    .browser-address-bar {
+      flex: 1;
+      max-width: 550px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      padding: 0.4rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+    }
+
+    .address-icon {
+      color: var(--accent-emerald);
+      font-size: 0.8rem;
+    }
+
+    .browser-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .browser-btn {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      padding: 0.45rem 0.95rem;
+      border-radius: var(--radius-md);
+      font-size: 0.825rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      text-decoration: none;
+      transition: all var(--transition-fast);
+    }
+
+    .browser-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+    }
+
+    .browser-body {
+      position: relative;
+      width: 100%;
+      height: 750px;
+      background: #050814;
+    }
+
+    .game-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+      background: #ffffff;
+    }
+
+    /* Loading Overlay */
+    .iframe-loader {
+      position: absolute;
+      inset: 0;
+      background: #070b19;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.25rem;
+      z-index: 10;
+      transition: opacity 0.5s ease;
+      color: var(--text-primary);
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .spinner-ring {
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(0, 240, 255, 0.15);
+      border-top-color: var(--accent-cyan);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .iframe-loader.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Fallback Card if embed blocked by security policies */
+    .embed-fallback-banner {
+      background: rgba(16, 25, 53, 0.8);
+      border: 1px solid var(--border-glass);
+      border-radius: var(--radius-md);
+      padding: 1.25rem 2rem;
+      margin-top: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      max-width: 1300px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .fallback-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .fallback-icon {
+      font-size: 2rem;
+      color: var(--accent-cyan);
+    }
+
+    /* Fullscreen Learning Mode */
+    .browser-frame.learning-mode {
+      position: fixed !important;
+      inset: 0 !important;
+      max-width: 100vw !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      z-index: 999999 !important;
+      border-radius: 0 !important;
+      border: none !important;
+      margin: 0 !important;
+    }
+
+    .browser-frame.learning-mode .browser-body {
+      height: calc(100vh - 54px) !important;
+    }
+
+    /* ==========================================================================
+       17. FOOTER
+       ========================================================================== */
+    .footer {
+      background: #02040b;
+      border-top: 1px solid var(--border-subtle);
+      padding: 4.5rem 0 2rem 0;
+      position: relative;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 3.5rem;
+      margin-bottom: 3.5rem;
+    }
+
+    .footer-brand {
+      max-width: 380px;
+    }
+
+    .footer-desc {
+      color: var(--text-muted);
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      line-height: 1.7;
+    }
+
+    .footer-col h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 1.25rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .footer-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.925rem;
+      transition: color var(--transition-fast);
+    }
+
+    .footer-links a:hover {
+      color: var(--accent-cyan);
+    }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+    }
+
+    /* ==========================================================================
+       18. BACK TO TOP BUTTON
+       ========================================================================== */
+    .back-to-top {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-accent);
+      color: var(--accent-cyan);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      box-shadow: var(--shadow-card);
+      backdrop-filter: blur(10px);
+      z-index: 800;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(20px);
+      transition: all var(--transition-smooth);
+    }
+
+    .back-to-top.visible {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .back-to-top:hover {
+      background: var(--accent-cyan);
+      color: #050814;
+      box-shadow: var(--glow-cyan);
+      transform: translateY(-4px);
+    }
+
+    /* ==========================================================================
+       19. SECTION REVEAL ANIMATIONS (INTERSECTION OBSERVER)
+       ========================================================================== */
+    .reveal-on-scroll {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .reveal-on-scroll.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ==========================================================================
+       20. RESPONSIVE BREAKPOINTS
+       ========================================================================== */
+    @media (max-width: 1100px) {
+      .hero-grid { grid-template-columns: 1fr; text-align: center; }
+      .hero-content { margin: 0 auto; }
+      .hero-subtitle { margin-left: auto; margin-right: auto; }
+      .hero-actions { justify-content: center; }
+      .hero-visual { margin-top: 3rem; }
+      .cards-grid-3 { grid-template-columns: 1fr; }
+      .facts-grid { grid-template-columns: 1fr 1fr; }
+      .metrics-grid { grid-template-columns: 1fr 1fr; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 900px) {
+      .intro-grid { grid-template-columns: 1fr; }
+      .calc-layout { grid-template-columns: 1fr; }
+      .thermal-box { grid-template-columns: 1fr; }
+      .energy-bars-grid { grid-template-columns: 1fr; }
+      .browser-body { height: 620px; }
+      .embed-fallback-banner { flex-direction: column; text-align: center; }
+      .fallback-info { flex-direction: column; }
+    }
+
+    @media (max-width: 768px) {
+      .navbar { padding: 1rem 1.5rem; }
+      .nav-toggle { display: block; }
+      
+      .nav-menu {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 80%;
+        max-width: 320px;
+        height: 100vh;
+        background: #080c1d;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 5rem 2rem 2rem 2rem;
+        gap: 1.25rem;
+        transition: right var(--transition-smooth);
+        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.8);
+        border-left: 1px solid var(--border-subtle);
+      }
+      
+      .nav-menu.open {
+        right: 0;
+      }
+      
+      .nav-link {
+        font-size: 1.1rem;
+        width: 100%;
+      }
+
+      .nav-cta {
+        margin-left: 0;
+        width: 100%;
+        justify-content: center;
+        margin-top: 1rem;
+      }
+
+      .facts-grid { grid-template-columns: 1fr; }
+      .metrics-grid { grid-template-columns: 1fr 1fr; }
+      .browser-body { height: 550px; }
+      .browser-header { flex-direction: column; align-items: stretch; }
+      .browser-address-bar { width: 100%; }
+      .browser-actions { justify-content: center; width: 100%; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; gap: 1rem; text-align: center; }
+    }
+
+    @media (max-width: 480px) {
+      .metrics-grid { grid-template-columns: 1fr; }
+      .orb-wrapper { width: 300px; height: 300px; }
+      .hero-title { font-size: 2.35rem; }
+      .hero-actions .btn { width: 100%; }
+      .browser-body { height: 480px; }
+    }
+
+    /* Accessibility: Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Reading / Scroll Progress Bar -->
+  <div class="scroll-progress-container">
+    <div class="scroll-progress-bar" id="progressBar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+  </div>
+
+  <!-- Ambient Glow Backgrounds -->
+  <div class="bg-canvas-container" aria-hidden="true">
+    <div class="ambient-glow ambient-glow-1"></div>
+    <div class="ambient-glow ambient-glow-2"></div>
+    <div class="ambient-glow ambient-glow-3"></div>
+  </div>
+
+  <!-- Desktop Cursor Glow Follower -->
+  <div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
+
+  <!-- Header / Navigation -->
+  <nav class="navbar" id="navbar" aria-label="Main Navigation">
+    <div class="nav-container">
+      <a href="#hero" class="nav-brand" aria-label="Energy in Science Homepage">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <span class="brand-text">ENERGY<span>.LAB</span></span>
+      </a>
+
+      <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-label="Toggle navigation menu">
+        <div class="nav-toggle-icon"></div>
+      </button>
+
+      <ul class="nav-menu" id="navMenu">
+        <li><a href="#introduction" class="nav-link">Introduction</a></li>
+        <li><a href="#kinetic-energy" class="nav-link">Kinetic</a></li>
+        <li><a href="#potential-energy" class="nav-link">Potential</a></li>
+        <li><a href="#thermal-energy" class="nav-link">Thermal</a></li>
+        <li><a href="#transformation" class="nav-link">Transformation</a></li>
+        <li><a href="#fun-facts" class="nav-link">Fun Facts</a></li>
+        <li><a href="#play-learn" class="nav-cta">🎮 Play & Learn</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <!-- HERO SECTION -->
+    <header class="hero" id="hero">
+      <div class="container">
+        <div class="hero-grid">
+          <div class="hero-content">
+            <div class="hero-pill">
+              <span class="pulse-dot"></span>
+              <span>Next-Gen Interactive Physics</span>
+            </div>
+            <h1 class="hero-title">
+              ENERGY<br>
+              <span class="gradient-energy">The Invisible Force</span><br>
+              Behind Everything
+            </h1>
+            <p class="hero-subtitle">
+              Explore kinetic, potential, and thermal energy through real-time simulators, interactive mathematical models, and engaging gamified challenges.
+            </p>
+            <div class="hero-actions">
+              <a href="#introduction" class="btn btn-primary">
+                <span>Explore Energy</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 13l5 5 5-5M7 6l5 5 5-5"/></svg>
+              </a>
+              <a href="#play-learn" class="btn btn-secondary">
+                <span>🎮 Interactive Games</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="hero-visual" aria-hidden="true">
+            <div class="orb-wrapper">
+              <div class="energy-ring ring-1"></div>
+              <div class="energy-ring ring-2"></div>
+              <div class="energy-ring ring-3"></div>
+              <div class="glowing-core">
+                <span class="core-icon">⚡</span>
+              </div>
+              
+              <div class="floating-badge badge-top">
+                <span>🏃</span>
+                <div>
+                  <strong>Kinetic</strong>
+                  <div style="font-size:0.75rem; color:var(--accent-cyan);">Motion in Action</div>
+                </div>
+              </div>
+
+              <div class="floating-badge badge-right">
+                <span>📦</span>
+                <div>
+                  <strong>Potential</strong>
+                  <div style="font-size:0.75rem; color:var(--accent-purple);">Stored Power</div>
+                </div>
+              </div>
+
+              <div class="floating-badge badge-bottom">
+                <span>🔥</span>
+                <div>
+                  <strong>Thermal</strong>
+                  <div style="font-size:0.75rem; color:var(--accent-amber);">Particle Jiggle</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- METRICS COUNTER STRIP -->
+    <section class="metrics-section reveal-on-scroll" aria-label="Key Physics Constants and Facts">
+      <div class="container">
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-number" data-target="3">0</div>
+            <div class="metric-label">Primary Energy Forms</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-number" data-target="9.81" data-decimals="2">0</div>
+            <div class="metric-label">m/s² Earth Gravity (g)</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-number" data-target="299792">0</div>
+            <div class="metric-label">km/s Speed of Light</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-number" data-target="0">0<span> K</span></div>
+            <div class="metric-label">Absolute Zero Limit</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: INTRODUCTION -->
+    <section class="section reveal-on-scroll" id="introduction">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-badge">Foundation of Physics</span>
+          <h2 class="section-title">What is <span class="gradient-text">Energy?</span></h2>
+          <p class="section-desc">
+            Energy is the fundamental currency of our universe. It cannot be created from nothing, nor can it vanish into thin air.
+          </p>
+        </div>
+
+        <div class="intro-grid">
+          <div class="intro-text-card">
+            <div class="intro-quote">
+              "Energy is the ability to do work, cause change, or make things happen."
+            </div>
+            <p class="intro-body">
+              From the microscopic vibrations of subatomic particles to the colossal gravitational dances of galaxies, every action in reality requires energy. Whether you are sprinting across a soccer field, boiling water for tea, or scrolling on your smartphone, energy is constantly shifting costumes.
+            </p>
+            <div class="intro-features">
+              <div class="feature-item">
+                <div class="feature-icon">✓</div>
+                <span>Universal Conservation</span>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon">✓</div>
+                <span>Infinite Transformation</span>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon">✓</div>
+                <span>Measurable in Joules (J)</span>
+              </div>
+              <div class="feature-item">
+                <div class="feature-icon">✓</div>
+                <span>Drives All Work & Heat</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="intro-visual-card">
+            <div class="concept-card">
+              <div class="concept-icon">⚡</div>
+              <div class="concept-info">
+                <h4>Dynamic Motion (Kinetic)</h4>
+                <p>Every object in motion holds kinetic energy. Speed up, and that energy amplifies exponentially.</p>
+              </div>
+            </div>
+
+            <div class="concept-card">
+              <div class="concept-icon">🏹</div>
+              <div class="concept-info">
+                <h4>Stored Potential</h4>
+                <p>Position, tension, and chemical bonds lock energy away, waiting for the trigger to be released.</p>
+              </div>
+            </div>
+
+            <div class="concept-card">
+              <div class="concept-icon">🌡️</div>
+              <div class="concept-info">
+                <h4>Thermal Agitation</h4>
+                <p>Heat is simply the chaotic kinetic energy of trillions of tiny atoms bumping and dancing.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: KINETIC ENERGY -->
+    <section class="section reveal-on-scroll" id="kinetic-energy">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-badge" style="background:rgba(0,240,255,0.1); border-color:rgba(0,240,255,0.3); color:var(--accent-cyan);">Motion Energy</span>
+          <h2 class="section-title">Kinetic <span class="gradient-text">Energy</span></h2>
+          <p class="section-desc">
+            Kinetic energy is simply the energy of anything that is moving. Think of it as "motion energy"—if an object is in motion, it has kinetic energy!
+          </p>
+        </div>
+
+        <div class="calculator-wrapper">
+          <div class="calc-layout">
+            <!-- Controls -->
+            <div class="calc-controls">
+              <div class="formula-tag">Ek = ½ · m · v²</div>
+              <p style="color:var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">
+                Notice that velocity (v) is squared: doubling an object's speed quadruples its kinetic punch! Adjust mass and speed below:
+              </p>
+
+              <div class="control-group">
+                <div class="control-header">
+                  <label for="keMass">Object Mass (m)</label>
+                  <span class="control-val" id="keMassVal">10 kg</span>
+                </div>
+                <input type="range" id="keMass" class="range-slider" min="1" max="100" value="10">
+              </div>
+
+              <div class="control-group">
+                <div class="control-header">
+                  <label for="keSpeed">Velocity / Speed (v)</label>
+                  <span class="control-val" id="keSpeedVal">5 m/s</span>
+                </div>
+                <input type="range" id="keSpeed" class="range-slider" min="1" max="50" value="5">
+              </div>
+
+              <div class="calc-result-box">
+                <div>
+                  <div class="result-label">Calculated Kinetic Energy</div>
+                  <div style="font-size:0.8rem; color:var(--text-dim);">Formula: 0.5 × m × v²</div>
+                </div>
+                <div class="result-value" id="keResult">125.0 J</div>
+              </div>
+            </div>
+
+            <!-- Visual simulation -->
+            <div class="kinetic-track-box">
+              <div class="sim-status">
+                <span>SIMULATION: VELOCITY TRAIL</span>
+                <span id="keSimStatus">5.0 m/s (Active)</span>
+              </div>
+
+              <div class="track-road" id="kineticTrack">
+                <div class="kinetic-craft" id="kineticCraft">
+                  <div class="craft-trail" id="craftTrail"></div>
+                  <div class="craft-body">
+                    <span>🚀</span>
+                    <span id="craftLabel">10 kg</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sim-status">
+                <span>MASS IMPACT: <strong id="keMassStatus" style="color:var(--accent-cyan);">Normal</strong></span>
+                <span>ENERGY GLOW: <strong id="keGlowStatus" style="color:var(--accent-cyan);">Level 1</strong></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: POTENTIAL ENERGY -->
+    <section class="section reveal-on-scroll" id="potential-energy">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-badge" style="background:rgba(168,85,247,0.1); border-color:rgba(168,85,247,0.3); color:var(--accent-purple);">Stored Power</span>
+          <h2 class="section-title">Potential <span class="gradient-text">Energy</span></h2>
+          <p class="section-desc">
+            Potential energy is stored energy waiting to be unleashed. It is energy an object holds because of its position, shape, or molecular state.
+          </p>
+        </div>
+
+        <!-- Calculator: Ep = mgh -->
+        <div class="calculator-wrapper">
+          <div class="calc-layout">
+            <div class="calc-controls">
+              <div class="formula-tag" style="border-color:rgba(168,85,247,0.4); color:var(--accent-purple);">Ep = m · g · h</div>
+              <p style="color:var(--text-secondary); margin-bottom: 1.5rem; font-size: 0.95rem;">
+                Earth's gravitational acceleration <em>g</em> is constant at approximately 9.81 m/s². The higher you hoist a mass, the greater its stored gravitational potential!
+              </p>
+
+              <div class="control-group">
+                <div class="control-header">
+                  <label for="peMass">Object Mass (m)</label>
+                  <span class="control-val" id="peMassVal" style="color:var(--accent-purple);">5 kg</span>
+                </div>
+                <input type="range" id="peMass" class="range-slider" min="1" max="50" value="5">
+              </div>
+
+              <div class="control-group">
+                <div class="control-header">
+                  <label for="peHeight">Height Above Ground (h)</label>
+                  <span class="control-val" id="peHeightVal" style="color:var(--accent-purple);">10 m</span>
+                </div>
+                <input type="range" id="peHeight" class="range-slider" min="1" max="100" value="10">
+              </div>
+
+              <div class="calc-result-box" style="background:rgba(168,85,247,0.06); border-color:rgba(168,85,247,0.3);">
+                <div>
+                  <div class="result-label">Stored Potential Energy</div>
+                  <div style="font-size:0.8rem; color:var(--text-dim);">Formula: m × 9.81 × h</div>
+                </div>
+                <div class="result-value" id="peResult" style="text-shadow:0 0 15px rgba(168,85,247,0.6);">490.5 J</div>
+              </div>
+            </div>
+
+            <!-- Visual gauge -->
+            <div class="potential-stage-box">
+              <div class="height-ruler">
+                <span>100m</span>
+                <span>75m</span>
+                <span>50m</span>
+                <span>25m</span>
+                <span>0m</span>
+              </div>
+
+              <div class="potential-visual-area">
+                <div class="pe-crane-rope" id="peRope"></div>
+                <div class="pe-weight-mass" id="peWeight">
+                  <span id="peWeightLabel">5 kg</span>
+                </div>
+                <div class="pe-ground"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 TYPES OF POTENTIAL ENERGY CARDS -->
+        <div class="cards-grid-3">
+          <!-- Elastic -->
+          <article class="type-card card-elastic">
+            <div class="card-icon-bubble bubble-amber">🏹</div>
+            <h3>Elastic Potential</h3>
+            <p>
+              Stored when an elastic object is deformed—stretched, twisted, or squeezed—like a pulled bowstring, a trampoline spring, or a coiled catapult, just waiting to snap back into original shape.
+            </p>
+            <div class="card-interactive-drawer">
+              <button class="toggle-details-btn" data-target="elasticDetails">
+                <span>Real-World Mechanism</span>
+                <span class="arrow">↓</span>
+              </button>
+              <div class="details-content" id="elasticDetails">
+                Governed by Hooke's Law (<em>Ee = ½ k x²</em>). The tighter the spring constant (k) and compression (x), the higher the snap velocity upon release.
+              </div>
+            </div>
+          </article>
+
+          <!-- Gravitational -->
+          <article class="type-card card-gravitational">
+            <div class="card-icon-bubble bubble-cyan">🧗</div>
+            <h3>Gravitational Potential</h3>
+            <p>
+              Stored purely by an object's elevation relative to a gravitational field, like a boulder perched precariously atop a canyon or massive water volumes held behind a hydroelectric reservoir dam.
+            </p>
+            <div class="card-interactive-drawer">
+              <button class="toggle-details-btn" data-target="gravDetails">
+                <span>Real-World Mechanism</span>
+                <span class="arrow">↓</span>
+              </button>
+              <div class="details-content" id="gravDetails">
+                Every meter of altitude gained represents work done against gravity. When dropped, 100% of this stored energy transforms into downward kinetic velocity.
+              </div>
+            </div>
+          </article>
+
+          <!-- Chemical -->
+          <article class="type-card card-chemical">
+            <div class="card-icon-bubble bubble-purple">🧪</div>
+            <h3>Chemical Potential</h3>
+            <p>
+              Locked inside the covalent bonds holding atoms and molecules together. Released during exothermic reactions, powering lithium-ion batteries, campfire combustion, and cellular respiration in food digestion.
+            </p>
+            <div class="card-interactive-drawer">
+              <button class="toggle-details-btn" data-target="chemDetails">
+                <span>Real-World Mechanism</span>
+                <span class="arrow">↓</span>
+              </button>
+              <div class="details-content" id="chemDetails">
+                When chemical bonds break and reform into more stable configurations, the excess bond enthalpy is liberated as heat, light, or electrical charge.
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: THERMAL ENERGY -->
+    <section class="section reveal-on-scroll" id="thermal-energy">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-badge" style="background:rgba(245,158,11,0.1); border-color:rgba(245,158,11,0.3); color:var(--accent-amber);">Microscopic Kinetic Heat</span>
+          <h2 class="section-title">Thermal <span class="gradient-text">Energy</span></h2>
+          <p class="section-desc">
+            Everything around you is made of tiny, invisible particles constantly jiggling. Thermal energy is simply the collective motion of those microscopic particles!
+          </p>
+        </div>
+
+        <div class="thermal-box">
+          <div class="canvas-chamber-wrapper">
+            <div class="thermal-badge-overlay" id="thermalOverlay">
+              PARTICLES: 80 | T: 300 K
+            </div>
+            <canvas id="thermalCanvas" width="600" height="320" aria-label="Thermal particle chamber animation"></canvas>
+          </div>
+
+          <div class="thermal-controls">
+            <div>
+              <h3 style="font-size:1.3rem; margin-bottom: 0.5rem; color:#ffffff;">Thermal Agitation Chamber</h3>
+              <p style="font-size:0.925rem; color:var(--text-secondary); line-height: 1.6;">
+                Think of a dance floor: in the cold, dancers barely sway. Crank up the heat, and they bounce violently around with intense kinetic energy!
+              </p>
+            </div>
+
+            <div class="control-group">
+              <div class="control-header">
+                <label for="tempSlider">Chamber Temperature</label>
+                <span class="control-val" id="tempVal" style="color:var(--accent-amber);">300 K (27°C)</span>
+              </div>
+              <input type="range" id="tempSlider" class="range-slider" min="10" max="1000" value="300">
+            </div>
+
+            <div id="tempStatusPill" class="temp-indicator-pill temp-med">
+              🌡️ Medium Temperature (Room Ambient)
+            </div>
+
+            <div style="font-size:0.85rem; color:var(--text-dim); line-height:1.5;">
+              Notice how particle collision frequency and speed soar as temperature rises, directly demonstrating thermal expansion and pressure.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: ENERGY TRANSFORMATION -->
+    <section class="section reveal-on-scroll" id="transformation">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-badge" style="background:rgba(16,185,129,0.1); border-color:rgba(16,185,129,0.3); color:var(--accent-emerald);">Conservation Law</span>
+          <h2 class="section-title">Energy <span class="gradient-text">Transformation</span></h2>
+          <p class="section-desc">
+            Energy never vanishes; it continually converts between Potential, Kinetic, and Thermal friction heat. Watch the seamless cycle below:
+          </p>
+        </div>
+
+        <div class="transform-stage">
+          <!-- Animated Coaster SVG Canvas -->
+          <div class="transform-svg-container" id="coasterStage">
+            <svg viewBox="0 0 1000 240" width="100%" height="100%" preserveAspectRatio="none" style="display:block;">
+              <defs>
+                <linearGradient id="trackGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#8b5cf6"/>
+                  <stop offset="50%" stop-color="#00f0ff"/>
+                  <stop offset="100%" stop-color="#f59e0b"/>
+                </linearGradient>
+              </defs>
+              <!-- Track Path -->
+              <path id="coasterTrack" d="M 50,40 Q 250,220 500,210 T 950,90" fill="none" stroke="url(#trackGrad)" stroke-width="6" stroke-linecap="round"/>
+              <!-- Markers -->
+              <circle cx="50" cy="40" r="6" fill="#8b5cf6" />
+              <text x="65" y="45" fill="#cbd5e1" font-size="12" font-family="monospace">Apex: Max PE</text>
+              <circle cx="500" cy="210" r="6" fill="#00f0ff" />
+              <text x="515" y="215" fill="#cbd5e1" font-size="12" font-family="monospace">Valley: Max KE</text>
+              <circle cx="950" cy="90" r="6" fill="#f59e0b" />
+              <text x="830" y="85" fill="#cbd5e1" font-size="12" font-family="monospace">Braking: Thermal</text>
+              <!-- Roller Coaster Cart -->
+              <g id="coasterCart" transform="translate(50, 40)">
+                <circle cx="0" cy="0" r="14" fill="#00f0ff" stroke="#ffffff" stroke-width="2"/>
+                <circle cx="0" cy="0" r="6" fill="#050814"/>
+              </g>
+            </svg>
+          </div>
+
+          <!-- Realtime Energy Balance Bars -->
+          <div class="energy-bars-grid">
+            <div class="energy-bar-card">
+              <div class="energy-bar-label">
+                <span style="color:var(--accent-purple);">Potential Energy (Ep)</span>
+                <span id="transPeVal">100%</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill fill-pe" id="transPeBar" style="width: 100%;"></div>
+              </div>
+            </div>
+
+            <div class="energy-bar-card">
+              <div class="energy-bar-label">
+                <span style="color:var(--accent-cyan);">Kinetic Energy (Ek)</span>
+                <span id="transKeVal">0%</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill fill-ke" id="transKeBar" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <div class="energy-bar-card">
+              <div class="energy-bar-label">
+                <span style="color:var(--accent-amber);">Thermal / Friction (Eth)</span>
+                <span id="transThVal">0%</span>
+              </div>
+              <div class="bar-track">
+                <div class="bar-fill fill-th" id="transThBar" style="width: 0%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="transform-controls">
+            <button class="btn btn-secondary" id="coasterToggleBtn">
+              <span id="coasterPlayIcon">⏸️</span>
+              <span id="coasterPlayText">Pause Motion</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: FUN FACTS -->
+    <section class="section reveal-on-scroll" id="fun-facts">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-badge">Mind-Blowing Insights</span>
+          <h2 class="section-title">Energy <span class="gradient-text">Fun Facts</span></h2>
+          <p class="section-desc">
+            Surprising scientific truths about the incredible energy powering the universe and our daily lives.
+          </p>
+        </div>
+
+        <div class="facts-grid">
+          <!-- Fact 1 -->
+          <article class="fact-card">
+            <div class="fact-header">
+              <span class="fact-tag tag-ke">Kinetic</span>
+              <span class="fact-icon">🚗</span>
+            </div>
+            <h3 class="fact-title">The Exponential Punch</h3>
+            <p class="fact-body">
+              If you double the speed of a car, its kinetic energy quadruples (x4) due to <em>v²</em>! This exponential scaling explains why speeding dramatically amplifies crash damage.
+            </p>
+          </article>
+
+          <!-- Fact 2 -->
+          <article class="fact-card">
+            <div class="fact-header">
+              <span class="fact-tag tag-ke">Kinetic</span>
+              <span class="fact-icon">💡</span>
+            </div>
+            <h3 class="fact-title">Light Speed Champions</h3>
+            <p class="fact-body">
+              The fastest kinetic energy in existence belongs to massless photons zooming across the vacuum of space at approximately 186,000 miles (299,792 km) every single second.
+            </p>
+          </article>
+
+          <!-- Fact 3 -->
+          <article class="fact-card">
+            <div class="fact-header">
+              <span class="fact-tag tag-ke">Kinetic</span>
+              <span class="fact-icon">🔊</span>
+            </div>
+            <h3 class="fact-title">Sound Is Moving Energy</h3>
+            <p class="fact-body">
+              Audible sound is purely mechanical kinetic energy traveling through atmospheric matter as microscopic gas molecules bump into each other and vibrate your eardrums.
+            </p>
+          </article>
+
+          <!-- Fact 4 -->
+          <article class="fact-card">
+            <div class="fact-header">
+              <span class="fact-tag tag-pe">Potential</span>
+              <span class="fact-icon">🗼</span>
+            </div>
+            <h3 class="fact-title">Eiffel Tower Growth</h3>
+            <p class="fact-body">
+              Thanks to thermal expansion and molecular potential energy shifts, Paris's Eiffel Tower can grow up to 6 inches (15 cm) taller during scorching summer months!
+            </p>
+          </article>
+
+          <!-- Fact 5 -->
+          <article class="fact-card">
+            <div class="fact-header">
+              <span class="fact-tag tag-pe">Potential</span>
+              <span class="fact-icon">🏹</span>
+            </div>
+            <h3 class="fact-title">The Ultimate Crossbow</h3>
+            <p class="fact-body">
+              A compound crossbow limb stores massive elastic potential. When triggered, it transfers that force so violently it launches an arrow faster than a sprinting cheetah.
+            </p>
+          </article>
+
+          <!-- Fact 6 -->
+          <article class="fact-card">
+            <div class="fact-header">
+              <span class="fact-tag tag-pe">Potential</span>
+              <span class="fact-icon">🌊</span>
+            </div>
+            <h3 class="fact-title">Planetary Water Batteries</h3>
+            <p class="fact-body">
+              Hydroelectric dams hold back trillions of gallons of elevated water, serving as enormous gravitational batteries that generate terawatts of electricity in seconds.
+            </p>
+          </article>
+
+          <!-- Fact 7 -->
+          <article class="fact-card">
+            <div class="fact-header">
+              <span class="fact-tag tag-th">Thermal</span>
+              <span class="fact-icon">❄️</span>
+            </div>
+            <h3 class="fact-title">Absolute Zero Cessation</h3>
+            <p class="fact-body">
+              At Absolute Zero (-273.15°C / 0 Kelvin), all atomic thermal agitation vanishes and particle motion ceases completely in accordance with quantum thermodynamic laws.
+            </p>
+          </article>
+
+          <!-- Fact 8 -->
+          <article class="fact-card">
+            <div class="fact-header">
+              <span class="fact-tag tag-th">Thermal</span>
+              <span class="fact-icon">🔥</span>
+            </div>
+            <h3 class="fact-title">You Are a 100W Heater</h3>
+            <p class="fact-body">
+              The average resting human body continuously radiates approximately 100 Watts of thermal energy. That is why a crowded seminar hall warms up so quickly!
+            </p>
+          </article>
+        </div>
+
+        <!-- Interactive Random Fact Generator -->
+        <div class="random-fact-box">
+          <div style="font-size:0.85rem; font-weight:700; text-transform:uppercase; color:var(--accent-cyan); letter-spacing:0.08em;">
+            ⚡ Did You Know? Generator
+          </div>
+          <div class="random-fact-content" id="randomFactDisplay">
+            <p class="random-fact-text" id="randomFactText">
+              "Click the button below to draw an extraordinary scientific energy discovery from our physics database!"
+            </p>
+          </div>
+          <button class="btn btn-primary" id="btnRandomFact">
+            <span>🎲 Show Random Energy Fact</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: CONCLUSION -->
+    <section class="section reveal-on-scroll" id="conclusion">
+      <div class="container">
+        <div class="conclusion-banner">
+          <h2 class="conclusion-title">The Ultimate Cosmic Trio</h2>
+          <p class="conclusion-text">
+            Kinetic, potential, and thermal energy are the supreme trio keeping our universe in dynamic motion. Every moment of your existence—from stretching a rubber band, to sprinting across a soccer field, to savoring a warm slice of pizza—involves energy changing forms. Potential energy stores it up, kinetic energy lets it move, and thermal energy keeps particles dancing.
+          </p>
+          <div class="law-card">
+            ⚡ First Law of Thermodynamics: Energy cannot be created or destroyed; it merely changes forms.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: PLAY & LEARN (LEGENDS OF LEARNING EMBED) -->
+    <section class="play-learn-section reveal-on-scroll" id="play-learn">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-badge" style="background:rgba(245,158,11,0.15); border-color:rgba(245,158,11,0.4); color:var(--accent-amber);">Gamified Learning</span>
+          <h2 class="section-title">Play & <span class="gradient-text">Learn</span></h2>
+          <p class="section-desc">
+            Ready to turn science into a game? Explore curriculum-aligned interactive science activities, simulation labs, and quests powered by Legends of Learning.
+          </p>
+        </div>
+
+        <div class="play-badges">
+          <div class="game-badge">🎮 Interactive Games</div>
+          <div class="game-badge">🧠 Learn by Playing</div>
+          <div class="game-badge">⚡ Science Challenges</div>
+        </div>
+
+        <!-- Browser Window Mockup Frame -->
+        <div class="browser-frame" id="learningBrowserFrame">
+          <!-- Top Window Controls & Fake URL Bar -->
+          <div class="browser-header">
+            <div class="browser-dots" aria-hidden="true">
+              <span class="browser-dot dot-close"></span>
+              <span class="browser-dot dot-min"></span>
+              <span class="browser-dot dot-max"></span>
+            </div>
+
+            <div class="browser-address-bar">
+              <span class="address-icon">🔒</span>
+              <span>https://www.legendsoflearning.com/</span>
+            </div>
+
+            <div class="browser-actions">
+              <button class="browser-btn" id="btnFullscreenGame" title="Toggle Fullscreen Learning Mode">
+                <span id="fsIcon">⛶</span>
+                <span id="fsText">Enter Learning Mode</span>
+              </button>
+              <button class="browser-btn" id="btnExternalGame" title="Open in new window">
+                <span>↗ Open External</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Frame Body with Iframe & Loading Fallback -->
+          <div class="browser-body">
+            <!-- Loading Overlay -->
+            <div class="iframe-loader" id="iframeLoader">
+              <div class="spinner-ring"></div>
+              <div>
+                <strong style="font-size:1.1rem; display:block; margin-bottom:0.25rem;">Connecting to Legends of Learning...</strong>
+                <span style="color:var(--text-muted); font-size:0.875rem;">Loading interactive educational environment</span>
+              </div>
+            </div>
+
+            <!-- Embedded Iframe -->
+            <iframe
+              id="gameIframe"
+              class="game-iframe"
+              src="https://www.legendsoflearning.com/"
+              title="Legends of Learning Science Games"
+              loading="lazy"
+              allowfullscreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
+            </iframe>
+          </div>
+        </div>
+
+        <!-- Graceful Fallback Banner -->
+        <div class="embed-fallback-banner">
+          <div class="fallback-info">
+            <div class="fallback-icon">💡</div>
+            <div>
+              <strong style="color:#ffffff; font-size:1rem; display:block;">Experiencing iframe security restrictions?</strong>
+              <span style="color:var(--text-secondary); font-size:0.875rem;">
+                Some school firewalls or security headers prefer opening games directly in an optimized full-screen workspace.
+              </span>
+            </div>
+          </div>
+          <button class="btn btn-primary" id="btnLaunchExternalFallback" style="padding:0.6rem 1.4rem; font-size:0.9rem;">
+            <span>Launch Legends of Learning ↗</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="nav-brand" style="margin-bottom:0.75rem;">
+            <div class="brand-icon">
+              <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </div>
+            <span class="brand-text">ENERGY<span>.LAB</span></span>
+          </div>
+          <p class="footer-desc">
+            An advanced, responsive, and accessible interactive scientific education experience built with modern web technologies. Designed to illuminate the fundamental principles of energy.
+          </p>
+        </div>
+
+        <div class="footer-col">
+          <h4>Topics</h4>
+          <ul class="footer-links">
+            <li><a href="#kinetic-energy">Kinetic Energy (Ek)</a></li>
+            <li><a href="#potential-energy">Potential Energy (Ep)</a></li>
+            <li><a href="#thermal-energy">Thermal Agitation</a></li>
+            <li><a href="#transformation">Energy Transformation</a></li>
+            <li><a href="#fun-facts">Fun Facts</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>Interactive</h4>
+          <ul class="footer-links">
+            <li><a href="#kinetic-energy">Kinetic Calculator</a></li>
+            <li><a href="#potential-energy">Height Potential Sim</a></li>
+            <li><a href="#thermal-energy">Thermal Particle Chamber</a></li>
+            <li><a href="#transformation">Conservation Coaster</a></li>
+            <li><a href="#play-learn">Legends of Learning</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>© 2026 Energy in Science. All Rights Reserved. Production-Grade Educational Architecture.</div>
+        <div>Engineered with HTML5, CSS3, Vanilla ES6+ & HTML5 Canvas</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Floating Back to Top Button -->
+  <button class="back-to-top" id="backToTop" aria-label="Back to top of page">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 15l-6-6-6 6"/>
+    </svg>
+  </button>
+
+  <!-- ==========================================================================
+       JAVASCRIPT ARCHITECTURE
+       ========================================================================== -->
+  <script>
+    /**
+     * Energy in Science - Front-End Architecture
+     * Modular Vanilla ES6+ Implementation
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+      initScrollProgress();
+      initNavigation();
+      initScrollReveal();
+      initCounters();
+      initKineticCalculator();
+      initPotentialCalculator();
+      initDrawerCards();
+      initThermalSimulation();
+      initEnergyTransformation();
+      initRandomFacts();
+      initLearningMode();
+      initBackToTop();
+      initCursorGlow();
+    });
+
+    /* --------------------------------------------------------------------------
+       1. READING / SCROLL PROGRESS BAR
+       -------------------------------------------------------------------------- */
+    function initScrollProgress() {
+      const progressBar = document.getElementById('progressBar');
+      if (!progressBar) return;
+
+      const updateProgress = () => {
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+        progressBar.style.width = `${progress}%`;
+        progressBar.setAttribute('aria-valuenow', Math.round(progress));
+      };
+
+      window.addEventListener('scroll', updateProgress, { passive: true });
+      updateProgress();
+    }
+
+    /* --------------------------------------------------------------------------
+       2. NAVIGATION & MOBILE MENU & SCROLLSPY
+       -------------------------------------------------------------------------- */
+    function initNavigation() {
+      const navbar = document.getElementById('navbar');
+      const navToggle = document.getElementById('navToggle');
+      const navMenu = document.getElementById('navMenu');
+      const navLinks = document.querySelectorAll('.nav-link, .nav-cta');
+      const sections = document.querySelectorAll('header[id], section[id]');
+
+      // Sticky Navbar Effect
+      const handleNavScroll = () => {
+        if (window.scrollY > 40) {
+          navbar.classList.add('scrolled');
+        } else {
+          navbar.classList.remove('scrolled');
+        }
+      };
+      window.addEventListener('scroll', handleNavScroll, { passive: true });
+      handleNavScroll();
+
+      // Mobile Menu Toggle
+      if (navToggle && navMenu) {
+        navToggle.addEventListener('click', () => {
+          const isOpen = navMenu.classList.toggle('open');
+          navToggle.setAttribute('aria-expanded', isOpen);
+        });
+
+        // Close on link click
+        navLinks.forEach(link => {
+          link.addEventListener('click', () => {
+            if (navMenu.classList.contains('open')) {
+              navMenu.classList.remove('open');
+              navToggle.setAttribute('aria-expanded', 'false');
+            }
+          });
+        });
+
+        // Close when clicking outside
+        document.addEventListener('click', (e) => {
+          if (!navbar.contains(e.target) && navMenu.classList.contains('open')) {
+            navMenu.classList.remove('open');
+            navToggle.setAttribute('aria-expanded', 'false');
+          }
+        });
+      }
+
+      // ScrollSpy for Active Links
+      const handleScrollSpy = () => {
+        const scrollPos = window.scrollY + 120;
+        sections.forEach(section => {
+          const top = section.offsetTop;
+          const height = section.offsetHeight;
+          const id = section.getAttribute('id');
+          if (scrollPos >= top && scrollPos < top + height) {
+            navLinks.forEach(link => {
+              if (link.getAttribute('href') === `#${id}`) {
+                link.classList.add('active');
+              } else {
+                link.classList.remove('active');
+              }
+            });
+          }
+        });
+      };
+      window.addEventListener('scroll', handleScrollSpy, { passive: true });
+    }
+
+    /* --------------------------------------------------------------------------
+       3. INTERSECTION OBSERVER REVEAL ANIMATIONS
+       -------------------------------------------------------------------------- */
+    function initScrollReveal() {
+      const elements = document.querySelectorAll('.reveal-on-scroll');
+      if (!('IntersectionObserver' in window)) {
+        elements.forEach(el => el.classList.add('revealed'));
+        return;
+      }
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, {
+        root: null,
+        threshold: 0.12,
+        rootMargin: '0px 0px -40px 0px'
+      });
+
+      elements.forEach(el => observer.observe(el));
+    }
+
+    /* --------------------------------------------------------------------------
+       4. ANIMATED COUNTER METRICS
+       -------------------------------------------------------------------------- */
+    function initCounters() {
+      const counters = document.querySelectorAll('.metric-number');
+      if (!counters.length) return;
+
+      let started = false;
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !started) {
+            started = true;
+            counters.forEach(counter => {
+              const target = parseFloat(counter.getAttribute('data-target')) || 0;
+              const decimals = parseInt(counter.getAttribute('data-decimals'), 10) || 0;
+              const duration = 1800;
+              const startTime = performance.now();
+
+              const animate = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                // Ease out exponential
+                const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+                const currentVal = target * easeProgress;
+
+                if (decimals > 0) {
+                  counter.textContent = currentVal.toFixed(decimals);
+                } else if (target >= 1000) {
+                  counter.textContent = Math.floor(currentVal).toLocaleString();
+                } else {
+                  counter.textContent = Math.floor(currentVal);
+                }
+
+                if (progress < 1) {
+                  requestAnimationFrame(animate);
+                }
+              };
+              requestAnimationFrame(animate);
+            });
+            observer.disconnect();
+          }
+        });
+      }, { threshold: 0.3 });
+
+      const metricsSection = document.querySelector('.metrics-section');
+      if (metricsSection) observer.observe(metricsSection);
+    }
+
+    /* --------------------------------------------------------------------------
+       5. KINETIC ENERGY CALCULATOR & MOTION VISUALIZER (Ek = 1/2 m v^2)
+       -------------------------------------------------------------------------- */
+    function initKineticCalculator() {
+      const massInput = document.getElementById('keMass');
+      const speedInput = document.getElementById('keSpeed');
+      const massVal = document.getElementById('keMassVal');
+      const speedVal = document.getElementById('keSpeedVal');
+      const resultVal = document.getElementById('keResult');
+      const craft = document.getElementById('kineticCraft');
+      const craftLabel = document.getElementById('craftLabel');
+      const craftTrail = document.getElementById('craftTrail');
+      const track = document.getElementById('kineticTrack');
+      const simStatus = document.getElementById('keSimStatus');
+      const massStatus = document.getElementById('keMassStatus');
+      const glowStatus = document.getElementById('keGlowStatus');
+
+      if (!massInput || !speedInput || !craft) return;
+
+      let animPosition = 0;
+      let animFrameId = null;
+
+      function updateCalculation() {
+        const m = parseFloat(massInput.value);
+        const v = parseFloat(speedInput.value);
+
+        massVal.textContent = `${m} kg`;
+        speedVal.textContent = `${v} m/s`;
+        craftLabel.textContent = `${m} kg`;
+
+        // Kinetic Energy: Ek = 0.5 * m * v^2
+        const ek = 0.5 * m * (v * v);
+        resultVal.textContent = ek >= 1000 ? `${(ek / 1000).toFixed(2)} kJ` : `${ek.toFixed(1)} J`;
+
+        // Visual status updates
+        simStatus.textContent = `${v.toFixed(1)} m/s (Active)`;
+        massStatus.textContent = m > 60 ? 'Heavy Rig' : m > 30 ? 'Medium' : 'Light Weight';
+        const glowLevel = Math.min(Math.round((v / 50) * 5) + 1, 5);
+        glowStatus.textContent = `Level ${glowLevel}`;
+
+        // Glow on craft body
+        const glowIntensity = Math.min(v * 1.5, 40);
+        craft.style.filter = `drop-shadow(0 0 ${glowIntensity}px rgba(0, 240, 255, ${0.4 + v/80}))`;
+        craftTrail.style.width = `${Math.min(v * 2.5, 90)}px`;
+      }
+
+      function runAnimation() {
+        if (!track || !craft) return;
+        const v = parseFloat(speedInput.value);
+        const trackWidth = track.clientWidth - craft.clientWidth;
+
+        // Step proportional to speed
+        animPosition += (v * 0.18);
+        if (animPosition > trackWidth) {
+          animPosition = 0;
+        }
+        craft.style.transform = `translateX(${animPosition}px)`;
+        animFrameId = requestAnimationFrame(runAnimation);
+      }
+
+      massInput.addEventListener('input', updateCalculation);
+      speedInput.addEventListener('input', updateCalculation);
+
+      updateCalculation();
+      runAnimation();
+    }
+
+    /* --------------------------------------------------------------------------
+       6. POTENTIAL ENERGY CALCULATOR & ELEVATION VISUALIZER (Ep = mgh)
+       -------------------------------------------------------------------------- */
+    function initPotentialCalculator() {
+      const massInput = document.getElementById('peMass');
+      const heightInput = document.getElementById('peHeight');
+      const massVal = document.getElementById('peMassVal');
+      const heightVal = document.getElementById('peHeightVal');
+      const resultVal = document.getElementById('peResult');
+      const weight = document.getElementById('peWeight');
+      const rope = document.getElementById('peRope');
+      const weightLabel = document.getElementById('peWeightLabel');
+
+      if (!massInput || !heightInput || !weight) return;
+
+      const G = 9.81;
+
+      function updatePotential() {
+        const m = parseFloat(massInput.value);
+        const h = parseFloat(heightInput.value);
+
+        massVal.textContent = `${m} kg`;
+        heightVal.textContent = `${h} m`;
+        weightLabel.textContent = `${m} kg`;
+
+        // Ep = m * g * h
+        const ep = m * G * h;
+        resultVal.textContent = ep >= 1000 ? `${(ep / 1000).toFixed(2)} kJ` : `${ep.toFixed(1)} J`;
+
+        // Elevation visual
+        const percentage = Math.min(Math.max((h / 100) * 100, 5), 85);
+        weight.style.bottom = `${percentage}%`;
+        if (rope) {
+          rope.style.height = `${100 - percentage}%`;
+        }
+
+        // Scale weight based on mass
+        const scale = 0.85 + (m / 50) * 0.35;
+        weight.style.transform = `scale(${scale})`;
+      }
+
+      massInput.addEventListener('input', updatePotential);
+      heightInput.addEventListener('input', updatePotential);
+      updatePotential();
+    }
+
+    /* --------------------------------------------------------------------------
+       7. POTENTIAL CARDS EXPANDABLE ACCORDIONS
+       -------------------------------------------------------------------------- */
+    function initDrawerCards() {
+      const buttons = document.querySelectorAll('.toggle-details-btn');
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.getAttribute('data-target');
+          const content = document.getElementById(targetId);
+          if (!content) return;
+
+          const isOpen = content.classList.contains('open');
+          content.classList.toggle('open');
+          const arrow = btn.querySelector('.arrow');
+          if (arrow) arrow.textContent = isOpen ? '↓' : '↑';
+        });
+      });
+    }
+
+    /* --------------------------------------------------------------------------
+       8. THERMAL PARTICLE SIMULATION (CANVAS)
+       -------------------------------------------------------------------------- */
+    function initThermalSimulation() {
+      const canvas = document.getElementById('thermalCanvas');
+      const tempSlider = document.getElementById('tempSlider');
+      const tempVal = document.getElementById('tempVal');
+      const statusPill = document.getElementById('tempStatusPill');
+      const overlay = document.getElementById('thermalOverlay');
+
+      if (!canvas || !tempSlider) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const particleCount = 75;
+      const particles = [];
+
+      class Particle {
+        constructor(w, h) {
+          this.x = Math.random() * (w - 20) + 10;
+          this.y = Math.random() * (h - 20) + 10;
+          this.radius = 4;
+          const angle = Math.random() * Math.PI * 2;
+          this.baseVx = Math.cos(angle);
+          this.baseVy = Math.sin(angle);
+        }
+
+        update(w, h, speedFactor) {
+          this.x += this.baseVx * speedFactor;
+          this.y += this.baseVy * speedFactor;
+
+          // Wall bounces
+          if (this.x - this.radius < 0) {
+            this.x = this.radius;
+            this.baseVx = -this.baseVx;
+          } else if (this.x + this.radius > w) {
+            this.x = w - this.radius;
+            this.baseVx = -this.baseVx;
+          }
+
+          if (this.y - this.radius < 0) {
+            this.y = this.radius;
+            this.baseVy = -this.baseVy;
+          } else if (this.y + this.radius > h) {
+            this.y = h - this.radius;
+            this.baseVy = -this.baseVy;
+          }
+        }
+
+        draw(ctx, color) {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.shadowBlur = 6;
+          ctx.shadowColor = color;
+          ctx.fill();
+        }
+      }
+
+      function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * (window.devicePixelRatio || 1);
+        canvas.height = 320 * (window.devicePixelRatio || 1);
+        ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+      }
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle(canvas.offsetWidth, 320));
+      }
+
+      function getThermalColor(T) {
+        if (T < 200) return '#38bdf8'; // Icy cyan
+        if (T < 500) return '#f59e0b'; // Amber
+        return '#f43f5e'; // Hot plasma rose
+      }
+
+      function render() {
+        const T = parseFloat(tempSlider.value);
+        const w = canvas.offsetWidth;
+        const h = 320;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Speed factor proportional to sqrt(Temperature) in physics
+        const speedFactor = Math.sqrt(T / 300) * 2.2;
+        const particleColor = getThermalColor(T);
+
+        particles.forEach(p => {
+          p.update(w, h, speedFactor);
+          p.draw(ctx, particleColor);
+        });
+
+        requestAnimationFrame(render);
+      }
+      render();
+
+      tempSlider.addEventListener('input', () => {
+        const T = parseInt(tempSlider.value, 10);
+        const cDeg = (T - 273.15).toFixed(0);
+        tempVal.textContent = `${T} K (${cDeg}°C)`;
+        overlay.textContent = `PARTICLES: ${particleCount} | T: ${T} K`;
+
+        statusPill.className = 'temp-indicator-pill';
+        if (T < 200) {
+          statusPill.classList.add('temp-low');
+          statusPill.textContent = '❄️ Low Temperature (Slow Jiggle / Ice)';
+        } else if (T < 550) {
+          statusPill.classList.add('temp-med');
+          statusPill.textContent = '🌡️ Medium Temperature (Room Ambient)';
+        } else {
+          statusPill.classList.add('temp-high');
+          statusPill.textContent = '🔥 High Temperature (Hyper Collisions)';
+        }
+      });
+    }
+
+    /* --------------------------------------------------------------------------
+       9. ENERGY TRANSFORMATION SIMULATOR (ROLLERCOASTER)
+       -------------------------------------------------------------------------- */
+    function initEnergyTransformation() {
+      const cart = document.getElementById('coasterCart');
+      const track = document.getElementById('coasterTrack');
+      const peBar = document.getElementById('transPeBar');
+      const keBar = document.getElementById('transKeBar');
+      const thBar = document.getElementById('transThBar');
+      const peVal = document.getElementById('transPeVal');
+      const keVal = document.getElementById('transKeVal');
+      const thVal = document.getElementById('transThVal');
+      const toggleBtn = document.getElementById('coasterToggleBtn');
+      const playIcon = document.getElementById('coasterPlayIcon');
+      const playText = document.getElementById('coasterPlayText');
+
+      if (!cart || !track) return;
+
+      let isPlaying = true;
+      let progress = 0;
+      const trackLength = track.getTotalLength();
+
+      function updateEnergyCycle() {
+        if (isPlaying) {
+          progress += 0.0035;
+          if (progress > 1) progress = 0;
+
+          const point = track.getPointAtLength(progress * trackLength);
+          cart.setAttribute('transform', `translate(${point.x}, ${point.y})`);
+
+          // Calculate energy ratios based on height (y coordinate: 40 is top, 210 is bottom)
+          const normalizedY = (point.y - 40) / (210 - 40); // 0 at top, 1 at bottom
+          let pe = Math.max(0, Math.min(100, (1 - normalizedY) * 100));
+          let friction = Math.min(25, progress * 25); // accumulates friction slightly
+          let ke = Math.max(0, 100 - pe - friction);
+
+          peBar.style.width = `${pe.toFixed(0)}%`;
+          keBar.style.width = `${ke.toFixed(0)}%`;
+          thBar.style.width = `${friction.toFixed(0)}%`;
+
+          peVal.textContent = `${pe.toFixed(0)}%`;
+          keVal.textContent = `${ke.toFixed(0)}%`;
+          thVal.textContent = `${friction.toFixed(0)}%`;
+        }
+        requestAnimationFrame(updateEnergyCycle);
+      }
+      updateEnergyCycle();
+
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+          isPlaying = !isPlaying;
+          playIcon.textContent = isPlaying ? '⏸️' : '▶️';
+          playText.textContent = isPlaying ? 'Pause Motion' : 'Resume Motion';
+        });
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       10. RANDOM FACT GENERATOR
+       -------------------------------------------------------------------------- */
+    function initRandomFacts() {
+      const energyFacts = [
+        "If you double the speed of a vehicle, its kinetic energy doesn't just double—it quadruples (2² = 4)! Speed is exponentially dangerous.",
+        "Photons (light particles) carry kinetic energy at the cosmic speed limit of 186,000 miles (299,792 km) per second through space.",
+        "Sound is purely mechanical kinetic energy: air particles bumping together like dominoes to gently vibrate your eardrum.",
+        "The Eiffel Tower can grow up to 6 inches (15 cm) taller in summer due to thermal expansion pushing its iron atoms apart.",
+        "A drawn crossbow locks immense elastic potential in bent composite limbs, launching bolts faster than a cheetah sprints.",
+        "Hydroelectric reservoirs store trillions of gallons of water, essentially acting as giant planetary gravity batteries.",
+        "At Absolute Zero (-273.15°C or 0 K), all thermal kinetic movement halts completely according to classical thermodynamics.",
+        "Your resting body continuously radiates about 100 Watts of thermal energy—making you a walking, talking radiator!"
+      ];
+
+      const btn = document.getElementById('btnRandomFact');
+      const textDisplay = document.getElementById('randomFactText');
+      const box = document.getElementById('randomFactDisplay');
+
+      if (!btn || !textDisplay || !box) return;
+
+      let lastIndex = -1;
+
+      btn.addEventListener('click', () => {
+        let newIndex;
+        do {
+          newIndex = Math.floor(Math.random() * energyFacts.length);
+        } while (newIndex === lastIndex && energyFacts.length > 1);
+        lastIndex = newIndex;
+
+        box.classList.add('fade-out');
+        setTimeout(() => {
+          textDisplay.textContent = `"${energyFacts[newIndex]}"`;
+          box.classList.remove('fade-out');
+        }, 300);
+      });
+    }
+
+    /* --------------------------------------------------------------------------
+       11. PLAY & LEARN - LEGENDS OF LEARNING FULLSCREEN & FALLBACK
+       -------------------------------------------------------------------------- */
+    function initLearningMode() {
+      const browserFrame = document.getElementById('learningBrowserFrame');
+      const btnFullscreen = document.getElementById('btnFullscreenGame');
+      const btnExternal = document.getElementById('btnExternalGame');
+      const btnFallback = document.getElementById('btnLaunchExternalFallback');
+      const fsIcon = document.getElementById('fsIcon');
+      const fsText = document.getElementById('fsText');
+      const iframe = document.getElementById('gameIframe');
+      const loader = document.getElementById('iframeLoader');
+
+      const targetUrl = 'https://www.legendsoflearning.com/';
+
+      // External Tab Openers
+      const openExternal = () => {
+        window.open(targetUrl, '_blank', 'noopener,noreferrer');
+      };
+
+      if (btnExternal) btnExternal.addEventListener('click', openExternal);
+      if (btnFallback) btnFallback.addEventListener('click', openExternal);
+
+      // Loading state for Iframe
+      if (iframe && loader) {
+        iframe.addEventListener('load', () => {
+          loader.classList.add('hidden');
+        });
+
+        // Fail-safe: hide loader after 5s if already rendered
+        setTimeout(() => {
+          if (loader && !loader.classList.contains('hidden')) {
+            loader.classList.add('hidden');
+          }
+        }, 5000);
+      }
+
+      // Fullscreen Learning Mode
+      if (btnFullscreen && browserFrame) {
+        function toggleLearningMode() {
+          const isFull = browserFrame.classList.toggle('learning-mode');
+          if (isFull) {
+            document.body.style.overflow = 'hidden';
+            fsIcon.textContent = '✕';
+            fsText.textContent = 'Exit Learning Mode';
+          } else {
+            document.body.style.overflow = '';
+            fsIcon.textContent = '⛶';
+            fsText.textContent = 'Enter Learning Mode';
+          }
+        }
+
+        btnFullscreen.addEventListener('click', toggleLearningMode);
+
+        // Escape key to exit learning mode
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && browserFrame.classList.contains('learning-mode')) {
+            toggleLearningMode();
+          }
+        });
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       12. BACK TO TOP
+       -------------------------------------------------------------------------- */
+    function initBackToTop() {
+      const backToTopBtn = document.getElementById('backToTop');
+      if (!backToTopBtn) return;
+
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 450) {
+          backToTopBtn.classList.add('visible');
+        } else {
+          backToTopBtn.classList.remove('visible');
+        }
+      }, { passive: true });
+
+      backToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      });
+    }
+
+    /* --------------------------------------------------------------------------
+       13. SUBTLE CURSOR GLOW EFFECT (DESKTOP)
+       -------------------------------------------------------------------------- */
+    function initCursorGlow() {
+      const glow = document.getElementById('cursorGlow');
+      if (!glow || window.matchMedia('(pointer: coarse)').matches) return;
+
+      window.addEventListener('mousemove', (e) => {
+        glow.style.left = `${e.clientX}px`;
+        glow.style.top = `${e.clientY}px`;
+      }, { passive: true });
+    }
+  </script>
+</body>
+</html>
